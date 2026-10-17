@@ -41,7 +41,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               <img
                 src={logoLight}
                 alt="AFRI SANDIES"
-                className="h-14 w-auto max-w-[56vw] select-none sm:h-16 md:h-20"
+                className="h-16 w-auto max-w-[56vw] select-none sm:h-20 md:h-24"
                 loading="eager"
               />
               <span className="sr-only">AFRI SANDIES</span>

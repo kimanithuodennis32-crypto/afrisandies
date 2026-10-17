@@ -71,7 +71,7 @@ export default function Home() {
         </div>
 
         <div className="relative mx-auto w-full max-w-6xl px-4 py-16 md:px-6 md:py-24">
-          <div className="max-w-2xl">
+          <div className="max-w-4xl">
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ export default function Home() {
               <img
                 src={logoBlack}
                 alt="AFRI SANDIES"
-                className="h-40 w-auto max-w-[92vw] select-none sm:h-48 md:h-56"
+                className="h-auto w-72 max-w-[88vw] select-none sm:w-96 md:w-[28rem]"
                 loading="eager"
               />
               <span className="sr-only">AFRI SANDIES</span>
@@ -101,11 +101,11 @@ export default function Home() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.16 }}
-              className="mt-5 text-xl text-white/90"
+              className="font-slogan mt-4 text-[clamp(2.25rem,9.5vw,5rem)] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
             >
               Stepping in Style
               <br />
-              and Comfort.
+              <span className="text-accent">and Comfort.</span>
             </motion.p>
 
             <motion.p
