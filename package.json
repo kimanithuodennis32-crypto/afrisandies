@@ -1,0 +1,16 @@
+{
+  "name": "afri-sandies",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AFRI SANDIES storefront (React) + API (Express/Prisma) served from one service",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "install:all": "npx --yes pnpm@9 --dir frontend install --frozen-lockfile && npm --prefix backend install",
+    "build:frontend": "npx --yes pnpm@9 --dir frontend build",
+    "build:backend": "npm --prefix backend run build",
+    "build": "npm run install:all && npm run build:frontend && npm run build:backend && npm --prefix backend run db:deploy",
+    "start": "npm --prefix backend start",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:web": "npx --yes pnpm@9 --dir frontend dev"
+  }
+}

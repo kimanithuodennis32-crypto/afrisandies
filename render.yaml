@@ -1,0 +1,25 @@
+# One web service: Express serves both the API (/api/*) and the built storefront.
+services:
+  - type: web
+    name: afri-sandies
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        sync: false   # Postgres connection string (e.g. from Neon)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Optional: image uploads in Admin (baked into the frontend at build time)
+      - key: VITE_CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: VITE_CLOUDINARY_UPLOAD_PRESET
+        sync: false
