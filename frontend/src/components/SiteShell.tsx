@@ -1,11 +1,21 @@
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ShoppingBag, UserRound, ShieldCheck, PhoneCall } from "lucide-react";
+import { ShoppingBag, UserRound, ShieldCheck, PhoneCall, ChevronDown } from "lucide-react";
 
-import logoLight from "@/assets/afri/logo/logo-light.svg";
+// NOTE: the file names describe the background they are made FOR:
+// logo-light.svg = black lettering (for light backgrounds), logo-dark.svg = white lettering (for dark backgrounds).
+import logoForLightBg from "@/assets/afri/logo/logo-light.svg";
+import logoForDarkBg from "@/assets/afri/logo/logo-dark.svg";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/store/cart";
 import WhatsAppFab from "@/components/WhatsAppFab";
@@ -18,9 +28,10 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const { lines } = useCart();
   const cartCount = lines.reduce((s, l) => s + l.qty, 0);
 
-  const nav = [
-    { label: "Home", href: "/" },
-    { label: "Shop", href: "/shop" },
+  const { theme } = useTheme();
+  const logo = theme === "dark" ? logoForDarkBg : logoForLightBg;
+
+  const collections = [
     { label: "Bags", href: "/category/bags" },
     { label: "Kids Bags", href: "/category/kids-bags" },
     { label: "African Wear", href: "/category/african-summer-wear" },
@@ -28,9 +39,27 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     { label: "Sandals (Ladies)", href: "/category/sandals-ladies" },
     { label: "Sandals (Kids)", href: "/category/sandals-kids" },
     { label: "Hoodies", href: "/category/hoodies" },
+  ];
+
+  // Desktop: short menu with the categories grouped in a drop-down.
+  const desktopNav = [
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/shop" },
+  ];
+  const desktopNavAfter = [
     { label: "Gallery", href: "/gallery" },
     { label: "Contact", href: "/contact" },
   ];
+
+  // Mobile: one swipeable strip with everything.
+  const nav = [...desktopNav, ...collections, ...desktopNavAfter];
+  const collectionsActive = location.startsWith("/category/");
+
+  const pill = (active: boolean) =>
+    cn(
+      "whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors hover:bg-accent/15 hover:text-foreground",
+      active && "bg-accent/20"
+    );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -39,9 +68,9 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <Link href="/" className="group flex items-center gap-2">
               <img
-                src={logoLight}
+                src={logo}
                 alt="AFRI SANDIES"
-                className="h-16 w-auto max-w-[56vw] select-none sm:h-20 md:h-24"
+                className="h-11 w-auto max-w-[56vw] select-none sm:h-12 md:h-14"
                 loading="eager"
               />
               <span className="sr-only">AFRI SANDIES</span>
@@ -51,22 +80,33 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-1 max-w-[50vw] overflow-x-auto">
-            {nav.map((item) => {
-              const active = location === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors hover:bg-accent/15 hover:text-foreground",
-                    active && "bg-accent/20"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+          <nav className="hidden items-center gap-1 lg:flex">
+            {desktopNav.map((item) => (
+              <Link key={item.href} href={item.href} className={pill(location === item.href)}>
+                {item.label}
+              </Link>
+            ))}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger className={cn(pill(collectionsActive), "inline-flex items-center gap-1 outline-none")}>
+                Collections <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-48">
+                {collections.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href} className="cursor-pointer">
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {desktopNavAfter.map((item) => (
+              <Link key={item.href} href={item.href} className={pill(location === item.href)}>
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -99,7 +139,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
         {/* Mobile nav strip */}
         <div className="lg:hidden border-t border-border/50">
           <div className="mx-auto w-full max-w-6xl px-4 py-2 md:px-6">
-            <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {nav.map((item) => {
                 const active = location === item.href;
                 return (
@@ -129,7 +169,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <div>
               <div className="flex items-center">
                 <img
-                  src={logoLight}
+                  src={logo}
                   alt="AFRI SANDIES"
                   className="h-16 w-auto max-w-[78vw] md:h-20"
                   loading="lazy"

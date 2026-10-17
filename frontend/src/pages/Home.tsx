@@ -91,7 +91,7 @@ export default function Home() {
               <img
                 src={logoBlack}
                 alt="AFRI SANDIES"
-                className="h-auto w-72 max-w-[88vw] select-none sm:w-96 md:w-[28rem]"
+                className="h-auto w-80 max-w-[88vw] select-none sm:w-[28rem] md:w-[36rem]"
                 loading="eager"
               />
               <span className="sr-only">AFRI SANDIES</span>
