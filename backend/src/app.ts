@@ -1,4 +1,5 @@
 import "dotenv/config";
+import "express-async-errors"; // makes thrown/rejected errors in async routes reach the error handler
 import express from "express";
 import cors from "cors";
 
@@ -6,6 +7,7 @@ import { productsRouter } from "./routes/products";
 import { ordersRouter } from "./routes/orders";
 import { authRouter } from "./routes/auth";
 import { adminRouter } from "./routes/admin";
+import { galleryRouter } from "./routes/gallery";
 
 export const app = express();
 
@@ -22,6 +24,7 @@ app.use("/api/products", productsRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/gallery", galleryRouter);
 
 // Unknown /api routes should 404 as JSON, not fall through to the website.
 app.use("/api", (_req, res) => res.status(404).json({ error: "Not found" }));

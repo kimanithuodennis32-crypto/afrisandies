@@ -29,6 +29,26 @@ Notes: the first API call after a quiet period can take a few seconds
 (serverless + Neon waking up). The seed runs on every deploy; it never
 overwrites products but resets the admin password to `ADMIN_PASSWORD`.
 
+## Photo uploads (Cloudinary, free, no card)
+
+Photo uploads (products and gallery) go straight from the browser to Cloudinary.
+Without it, the admin forms fall back to "paste a photo link".
+
+1. Sign up at cloudinary.com. Your **cloud name** is shown on the dashboard.
+2. Settings > Upload > Upload presets > Add upload preset. Set **Signing mode: Unsigned**,
+   save, and copy the preset name.
+3. In Netlify (Site configuration > Environment variables) add two variables,
+   leaving "Contains secret values" **unticked** (they're public by design):
+   - `VITE_CLOUDINARY_CLOUD_NAME`
+   - `VITE_CLOUDINARY_UPLOAD_PRESET`
+4. Trigger a new deploy. These are baked in at build time, so a redeploy is required.
+
+## Gallery
+
+Public page at `/#/gallery`. Manage photos in the Admin page under **Gallery**:
+upload several at once, choose Event / Customer / Other, add a caption, change the
+type later, or delete.
+
 ## Deploy on Render instead (needs a card for verification)
 
 `render.yaml` is included: New > Blueprint > pick the repo, fill in

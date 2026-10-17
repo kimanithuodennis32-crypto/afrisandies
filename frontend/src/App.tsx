@@ -13,6 +13,7 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
+import Gallery from "@/pages/Gallery";
 import Policies from "@/pages/Policies";
 import Account from "@/pages/Account";
 import Admin from "@/pages/Admin";
@@ -32,6 +33,7 @@ function AppRouter() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
+        <Route path="/gallery" component={Gallery} />
         <Route path="/policies" component={Policies} />
         <Route path="/account" component={Account} />
         <Route path="/admin" component={Admin} />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CloudUpload } from "lucide-react";
+import { CloudUpload, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -44,8 +44,6 @@ const emptyForm = {
   category: "sandals" as ApiProduct["category"],
   subcategory: "",
   stock: "50",
-  imageSrc: "",
-  imageAlt: "",
   colors: "",
   sizes: "",
   description: "",
@@ -55,6 +53,8 @@ const emptyForm = {
 
 export default function ProductFormDialog({ open, onOpenChange, product, onSaved }: ProductFormDialogProps) {
   const [form, setForm] = useState(emptyForm);
+  const [images, setImages] = useState<{ src: string; alt: string }[]>([]);
+  const [pastedUrl, setPastedUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -73,17 +73,18 @@ export default function ProductFormDialog({ open, onOpenChange, product, onSaved
         category: product.category,
         subcategory: product.subcategory ?? "",
         stock: String(product.stock),
-        imageSrc: product.images[0]?.src ?? "",
-        imageAlt: product.images[0]?.alt ?? "",
         colors: product.colors.join(", "),
         sizes: product.sizes.join(", "),
         description: product.description,
         materials: product.materials,
         shipping: product.shipping,
       });
+      setImages(product.images);
     } else {
       setForm(emptyForm);
+      setImages([]);
     }
+    setPastedUrl("");
     setError("");
   }, [open, product]);
 
@@ -91,22 +92,39 @@ export default function ProductFormDialog({ open, onOpenChange, product, onSaved
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file later
-    if (!file) return;
+  async function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ""; // allow re-selecting the same files later
+    if (files.length === 0) return;
 
     setError("");
     setUploading(true);
     try {
-      const url = await uploadImageToCloudinary(file);
-      update("imageSrc", url);
-      if (!form.imageAlt.trim()) update("imageAlt", form.title.trim() || file.name);
+      for (const file of files) {
+        const url = await uploadImageToCloudinary(file);
+        const alt = form.title.trim() || file.name;
+        setImages((prev) => [...prev, { src: url, alt }]);
+      }
     } catch (err) {
       setError(err instanceof CloudinaryUploadError ? err.message : "Upload failed. Try again.");
     } finally {
       setUploading(false);
     }
+  }
+
+  function addPastedUrl() {
+    const url = pastedUrl.trim();
+    if (!url) return;
+    setImages((prev) => [...prev, { src: url, alt: form.title.trim() || "Product photo" }]);
+    setPastedUrl("");
+  }
+
+  function removeImage(index: number) {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function makeMainImage(index: number) {
+    setImages((prev) => [prev[index], ...prev.filter((_, i) => i !== index)]);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -117,7 +135,7 @@ export default function ProductFormDialog({ open, onOpenChange, product, onSaved
     const rating = Number(form.rating);
     const stock = Number(form.stock);
     if (!Number.isFinite(priceKes) || priceKes <= 0) return setError("Price must be a positive number.");
-    if (!form.imageSrc.trim() || !form.imageAlt.trim()) return setError("Image src and alt text are required.");
+    if (images.length === 0) return setError("Add at least one product photo.");
 
     const payload: ProductInput = {
       title: form.title.trim(),
@@ -126,7 +144,7 @@ export default function ProductFormDialog({ open, onOpenChange, product, onSaved
       category: form.category,
       subcategory: form.subcategory.trim() || undefined,
       stock: Number.isFinite(stock) ? stock : 0,
-      images: [{ src: form.imageSrc.trim(), alt: form.imageAlt.trim() }],
+      images: images.map((img) => ({ src: img.src, alt: img.alt || form.title.trim() || "Product photo" })),
       colors: parseListInput(form.colors),
       sizes: parseSizesInput(form.sizes),
       description: form.description.trim(),
@@ -230,22 +248,50 @@ export default function ProductFormDialog({ open, onOpenChange, product, onSaved
           </div>
 
           <div className="space-y-2">
-            <Label>Product image</Label>
+            <Label>Product photos</Label>
+            {images.length > 0 && (
+              <div className="grid grid-cols-4 gap-2">
+                {images.map((img, i) => (
+                  <div key={img.src + i} className="relative">
+                    <img
+                      src={img.src}
+                      alt={img.alt}
+                      className="aspect-square w-full rounded-lg border border-border/60 object-cover"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Remove photo"
+                      onClick={() => removeImage(i)}
+                      className="absolute -right-1 -top-1 rounded-full bg-background p-0.5 shadow ring-1 ring-border"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    {i === 0 ? (
+                      <span className="absolute bottom-1 left-1 rounded bg-black/70 px-1 text-[10px] text-white">
+                        Main
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => makeMainImage(i)}
+                        className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[10px] text-white"
+                      >
+                        Make main
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
             {cloudinaryConfigured ? (
-              <div className="flex items-center gap-3">
-                {form.imageSrc && (
-                  <img
-                    src={form.imageSrc}
-                    alt="Preview"
-                    className="h-16 w-16 rounded-lg border border-border/60 object-cover"
-                  />
-                )}
+              <div>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
-                  onChange={handleFileSelected}
+                  onChange={handleFilesSelected}
                 />
                 <Button
                   type="button"
@@ -254,26 +300,29 @@ export default function ProductFormDialog({ open, onOpenChange, product, onSaved
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <CloudUpload className="mr-2 h-4 w-4" />
-                  {uploading ? "Uploading..." : form.imageSrc ? "Replace image" : "Upload image"}
+                  {uploading ? "Uploading..." : images.length ? "Add more photos" : "Upload photos"}
                 </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  You can pick several photos at once. The first one is the main photo.
+                </p>
               </div>
             ) : (
               <>
-                <Input
-                  value={form.imageSrc}
-                  onChange={(e) => update("imageSrc", e.target.value)}
-                  placeholder="https://..."
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={pastedUrl}
+                    onChange={(e) => setPastedUrl(e.target.value)}
+                    placeholder="https://... (photo link)"
+                  />
+                  <Button type="button" variant="outline" onClick={addPastedUrl} disabled={!pastedUrl.trim()}>
+                    Add
+                  </Button>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in .env to upload directly
-                  instead of pasting a URL.
+                  Direct uploads need Cloudinary set up (see the README). Until then, paste photo links.
                 </p>
               </>
             )}
-          </div>
-          <div className="space-y-2">
-            <Label>Image alt text</Label>
-            <Input value={form.imageAlt} onChange={(e) => update("imageAlt", e.target.value)} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -103,9 +103,9 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.16 }}
               className="mt-5 text-xl text-white/90"
             >
-              Walk African.
+              Stepping in Style
               <br />
-              Wear Culture.
+              and Comfort.
             </motion.p>
 
             <motion.p

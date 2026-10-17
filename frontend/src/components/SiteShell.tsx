@@ -28,6 +28,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     { label: "Sandals (Ladies)", href: "/category/sandals-ladies" },
     { label: "Sandals (Kids)", href: "/category/sandals-kids" },
     { label: "Hoodies", href: "/category/hoodies" },
+    { label: "Gallery", href: "/gallery" },
     { label: "Contact", href: "/contact" },
   ];
 
@@ -136,7 +137,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                 <span className="sr-only">AFRI SANDIES</span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Walk African. Wear Culture. Sandals, bags and more.
+                Stepping in Style and Comfort. Sandals, bags and more.
               </p>
               <div className="mt-4 flex items-center gap-2">
                 <Badge variant="secondary">Mobile-first</Badge>
@@ -174,6 +175,9 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/category/hoodies">
                 Hoodies
+              </Link>
+              <Link className="text-muted-foreground hover:text-foreground" href="/gallery">
+                Gallery
               </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/contact">
                 Contact

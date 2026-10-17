@@ -183,3 +183,42 @@ export function deleteProduct(id: string) {
     headers: authHeaders(),
   });
 }
+
+// ---- Gallery ----
+
+export type GalleryCategory = "event" | "customer" | "other";
+
+export interface GalleryItem {
+  id: string;
+  imageUrl: string;
+  caption: string;
+  category: GalleryCategory;
+  createdAt: string;
+}
+
+export function listGallery() {
+  return request<GalleryItem[]>("/api/gallery");
+}
+
+export function createGalleryItem(input: { imageUrl: string; caption: string; category: GalleryCategory }) {
+  return request<GalleryItem>("/api/gallery", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateGalleryItem(id: string, input: { caption?: string; category?: GalleryCategory }) {
+  return request<GalleryItem>(`/api/gallery/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteGalleryItem(id: string) {
+  return request<void>(`/api/gallery/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+}

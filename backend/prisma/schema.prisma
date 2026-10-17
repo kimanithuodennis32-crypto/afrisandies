@@ -92,3 +92,13 @@ model AdminUser {
   name         String
   createdAt    DateTime @default(now())
 }
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  caption   String   @default("")
+  category  String   @default("event") // "event" | "customer" | "other"
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

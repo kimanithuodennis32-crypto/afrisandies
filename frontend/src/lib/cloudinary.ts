@@ -34,3 +34,12 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   const data = (await res.json()) as { secure_url: string };
   return data.secure_url;
 }
+
+/**
+ * For Cloudinary-hosted images, asks Cloudinary for a resized, compressed copy
+ * (much faster on mobile data). Other URLs are returned unchanged.
+ */
+export function optimizedImageUrl(url: string, width = 800): string {
+  if (!url.includes("res.cloudinary.com") || !url.includes("/upload/")) return url;
+  return url.replace("/upload/", `/upload/w_${width},c_limit,q_auto,f_auto/`);
+}
