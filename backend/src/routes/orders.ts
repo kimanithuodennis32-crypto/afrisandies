@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { requireAdmin } from "../middleware/requireAdmin";
+import { optionalCustomerId } from "../middleware/requireCustomer";
 import { STORE_CONFIG } from "../lib/storeConfig";
 
 export const ordersRouter = Router();
@@ -107,6 +108,13 @@ ordersRouter.post("/", async (req, res) => {
   }
   const input = parsed.data;
 
+  // If the shopper is logged in, attach the order to their account (guests can still order).
+  let customerId = optionalCustomerId(req.headers.authorization);
+  if (customerId) {
+    const exists = await prisma.customer.findUnique({ where: { id: customerId }, select: { id: true } });
+    if (!exists) customerId = undefined;
+  }
+
   const productIds = [...new Set(input.lines.map((l) => l.productId))];
   const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
   const productById = new Map(products.map((p) => [p.id, p]));
@@ -157,6 +165,7 @@ ordersRouter.post("/", async (req, res) => {
     const created = await tx.order.create({
       data: {
         orderCode,
+        customerId,
         customerName: input.name,
         customerPhone: input.phone,
         county: input.county,

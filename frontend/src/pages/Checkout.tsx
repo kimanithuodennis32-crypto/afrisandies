@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 
@@ -12,7 +12,14 @@ import { Separator } from "@/components/ui/separator";
 
 import { useCart, getLineKey } from "@/store/cart";
 import { formatKes } from "@/lib/money";
-import { createOrder, ApiError } from "@/lib/api";
+import {
+  createOrder,
+  ApiError,
+  clearCustomerToken,
+  getCustomerToken,
+  getMyProfile,
+  type Customer,
+} from "@/lib/api";
 
 const SHIPPING_KES = 300; // delivery fee varies by location; this is a starting estimate
 const WHATSAPP_E164 = "254736836343";
@@ -41,6 +48,21 @@ export default function Checkout() {
   const [town, setTown] = useState("");
   const [address, setAddress] = useState("");
   const [delivery, setDelivery] = useState<DeliveryMethod>("home");
+  const [customer, setCustomer] = useState<Customer | null>(null);
+
+  // If the shopper is logged in, prefill their details and make clear the order will be saved to their account.
+  useEffect(() => {
+    if (!getCustomerToken()) return;
+    getMyProfile()
+      .then((c) => {
+        setCustomer(c);
+        setName((n) => n || c.name);
+        setPhone((p) => p || c.phone);
+      })
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 401) clearCustomerToken();
+      });
+  }, []);
 
   const shippingKes = lines.length > 0 && delivery === "home" ? SHIPPING_KES : 0;
   const totalKes = subtotalKes + shippingKes;
@@ -105,6 +127,11 @@ export default function Checkout() {
                   <Button asChild className="rounded-full">
                     <Link href="/shop">Continue Shopping</Link>
                   </Button>
+                  {customer && (
+                    <Button asChild variant="outline" className="rounded-full">
+                      <Link href="/account">View my orders</Link>
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="rounded-full"
@@ -123,6 +150,21 @@ export default function Checkout() {
                   <h2 className="text-xl font-extrabold">Customer details</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     These details will be included in the WhatsApp order message.
+                  </p>
+                  <p className="mt-2 text-sm">
+                    {customer ? (
+                      <span className="text-accent">
+                        Logged in as {customer.email}. This order will be saved in your account.
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        Want to track this order online?{" "}
+                        <Link href="/account" className="text-accent underline">
+                          Log in or create an account
+                        </Link>{" "}
+                        first (optional, you can also order as a guest).
+                      </span>
+                    )}
                   </p>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-2">

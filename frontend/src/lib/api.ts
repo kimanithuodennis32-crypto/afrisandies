@@ -65,6 +65,7 @@ export interface CreateOrderResult {
 export function createOrder(input: CreateOrderInput) {
   return request<CreateOrderResult>("/api/orders", {
     method: "POST",
+    headers: customerAuthHeaders(),
     body: JSON.stringify(input),
   });
 }
@@ -220,5 +221,96 @@ export function deleteGalleryItem(id: string) {
   return request<void>(`/api/gallery/${encodeURIComponent(id)}`, {
     method: "DELETE",
     headers: authHeaders(),
+  });
+}
+
+// ---- Customer accounts ----
+
+const CUSTOMER_TOKEN_KEY = "afri-sandies.customer-token";
+
+// localStorage can be unavailable (private mode, blocked cookies): never let that crash the site.
+function storage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+export function getCustomerToken(): string | null {
+  return storage()?.getItem(CUSTOMER_TOKEN_KEY) ?? null;
+}
+
+export function setCustomerToken(token: string) {
+  storage()?.setItem(CUSTOMER_TOKEN_KEY, token);
+}
+
+export function clearCustomerToken() {
+  storage()?.removeItem(CUSTOMER_TOKEN_KEY);
+}
+
+function customerAuthHeaders(): HeadersInit {
+  const token = getCustomerToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface CustomerOrderLine {
+  id: string;
+  productTitle: string;
+  unitPriceKes: number;
+  qty: number;
+  size?: string | null;
+  color?: string | null;
+  pattern?: string | null;
+}
+
+export interface CustomerOrder {
+  id: string;
+  orderCode: string;
+  status: string;
+  deliveryMethod: string;
+  subtotalKes: number;
+  shippingKes: number;
+  totalKes: number;
+  createdAt: string;
+  lines: CustomerOrderLine[];
+}
+
+export function customerRegister(input: { name: string; email: string; phone: string; password: string }) {
+  return request<{ token: string; customer: Customer }>("/api/customers/register", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function customerLogin(email: string, password: string) {
+  return request<{ token: string; customer: Customer }>("/api/customers/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export function getMyProfile() {
+  return request<Customer>("/api/customers/me", { headers: customerAuthHeaders() });
+}
+
+export function listMyOrders() {
+  return request<CustomerOrder[]>("/api/customers/orders", { headers: customerAuthHeaders() });
+}
+
+// ---- Admin: update an order's status ----
+
+export function updateOrder(id: string, input: { status?: string; mpesaCode?: string }) {
+  return request<unknown>(`/api/orders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(input),
   });
 }

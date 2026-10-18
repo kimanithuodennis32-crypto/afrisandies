@@ -43,6 +43,19 @@ Without it, the admin forms fall back to "paste a photo link".
    - `VITE_CLOUDINARY_UPLOAD_PRESET`
 4. Trigger a new deploy. These are baked in at build time, so a redeploy is required.
 
+## Customer accounts
+
+Customers can create an account at `/#/account` (email + password) and see their
+orders and each order's status. Guests can still check out without an account.
+
+- Orders are linked to an account only if the customer was **logged in when
+  placing them**. Earlier guest orders are not matched automatically.
+- Admin: change an order's status in the Admin page (Recent orders). The customer
+  sees the new status in their account straight away.
+- Customer and admin logins use different token types, so a customer token can
+  never be used on admin routes. Admins must log in again once after this update.
+- Not built yet: "forgot password" (needs an email service) and login rate limiting.
+
 ## Gallery
 
 Public page at `/#/gallery`. Manage photos in the Admin page under **Gallery**:

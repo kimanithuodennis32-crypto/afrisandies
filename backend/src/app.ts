@@ -8,6 +8,7 @@ import { ordersRouter } from "./routes/orders";
 import { authRouter } from "./routes/auth";
 import { adminRouter } from "./routes/admin";
 import { galleryRouter } from "./routes/gallery";
+import { customersRouter } from "./routes/customers";
 
 export const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/orders", ordersRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/gallery", galleryRouter);
+app.use("/api/customers", customersRouter);
 
 // Unknown /api routes should 404 as JSON, not fall through to the website.
 app.use("/api", (_req, res) => res.status(404).json({ error: "Not found" }));

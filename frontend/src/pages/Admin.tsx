@@ -21,6 +21,7 @@ import {
   listOrders,
   listProducts,
   setAdminToken,
+  updateOrder,
   type AdminOrder,
   type AdminStats,
   type ApiProduct,
@@ -90,7 +91,7 @@ export default function Admin() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
-    return Promise.all([getAdminStats(), listOrders({ limit: 5 }), listProducts()])
+    return Promise.all([getAdminStats(), listOrders({ limit: 10 }), listProducts()])
       .then(([stats, orderPage, productList]) => {
         setLiveStats(stats);
         setOrders(orderPage.orders);
@@ -121,6 +122,15 @@ export default function Admin() {
     ],
     [liveStats, apiProducts.length]
   );
+
+  async function handleStatusChange(order: AdminOrder, status: string) {
+    try {
+      await updateOrder(order.id, { status });
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status } : o)));
+    } catch (err) {
+      setLoadError(err instanceof ApiError ? err.message : "Couldn't update the order.");
+    }
+  }
 
   async function handleDelete(product: ApiProduct) {
     if (!window.confirm(`Delete "${product.title}"? This can't be undone.`)) return;
@@ -256,7 +266,9 @@ export default function Admin() {
 
           <Card className="border-border/60 p-6">
             <h2 className="text-xl font-extrabold">Recent orders</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Latest orders placed through checkout.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Latest orders. Change the status here and customers see it in their account.
+            </p>
 
             <div className="mt-5 overflow-hidden rounded-xl border border-border/60">
               <Table>
@@ -281,7 +293,21 @@ export default function Admin() {
                         <TableCell className="font-semibold">{o.orderCode}</TableCell>
                         <TableCell>{o.customerName}</TableCell>
                         <TableCell className="text-right">{formatKes(o.totalKes)}</TableCell>
-                        <TableCell className="text-right capitalize">{o.status}</TableCell>
+                        <TableCell className="text-right">
+                          <select
+                            value={o.status}
+                            onChange={(e) => handleStatusChange(o, e.target.value)}
+                            className="h-8 rounded-md border border-input bg-transparent px-1 text-xs"
+                            aria-label={`Status for order ${o.orderCode}`}
+                          >
+                            <option value="pending">Awaiting payment</option>
+                            <option value="confirmed">Payment confirmed</option>
+                            <option value="processing">Being made</option>
+                            <option value="shipped">On the way</option>
+                            <option value="completed">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
